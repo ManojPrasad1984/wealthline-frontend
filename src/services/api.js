@@ -1,10 +1,8 @@
-// ✅ Dynamic BASE URL (works for local + Azure)
 const BASE =
   window.location.hostname === "localhost"
     ? "http://localhost:7100/api"
     : "https://wealthlineapi-bwf6g3fjcmhmfzea.centralindia-01.azurewebsites.net/api";
 
-// ✅ Common fetch wrapper (better error handling)
 const fetchJson = async (url, options = {}) => {
   const res = await fetch(url, options);
 
@@ -16,18 +14,35 @@ const fetchJson = async (url, options = {}) => {
   return res.json();
 };
 
-// ✅ APIs
-export const getApplyData = async () =>
-  fetchJson(`${BASE}/GetApplyData`);
+export const getApplyData = async () => fetchJson(`${BASE}/GetApplyData`);
+
+export const getAgents = async () => fetchJson(`${BASE}/GetAgents`);
+
+export const getDownloadReceiptUrl = (card) =>
+  `${BASE}/DownloadReceipt?card=${encodeURIComponent(card)}`;
+
+export const triggerReceiptDownload = (card) => {
+  const receiptUrl = getDownloadReceiptUrl(card);
+  const link = document.createElement("a");
+
+  // Let the browser handle the attachment response directly.
+  // This avoids popup blockers and cross-origin fetch/download issues.
+  link.href = receiptUrl;
+  link.target = "_self";
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
 
 export const createOrder = async () =>
   fetchJson(`${BASE}/CreateOrder`, {
-    method: "POST"
+    method: "POST",
   });
 
 export const verifyPayment = async (data) =>
   fetchJson(`${BASE}/VerifyPayment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
